@@ -4,7 +4,7 @@ from pyspark.sql.functions import mean,count,explode,col,monotonically_increasin
 spark = SparkSession.builder \
     .appName("player_statistics") \
     .getOrCreate()
-def spark_statistics(Path,save_location):
+def spark_player_statistics(Path,save_location):
     player_statistics = spark.read.json(Path,multiLine=True)
     player_statistics.createOrReplaceTempView("player_statistics")
     player_stat = spark.sql("""WITH

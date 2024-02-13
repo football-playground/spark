@@ -1,10 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
+from lib.kafkaconsumer import *
 
-spark = SparkSession.builder \
-    .appName("fixture") \
-    .getOrCreate()
-def spark_fixture(Path,save_location):
+def spark_fixture(spark:SparkSession, Path,save_location):
     df_fixtures = spark.read.json(Path, multiLine=True)
     df_fixtures.createOrReplaceTempView("df_fixtures")
     df=spark.sql("""WITH
