@@ -1,0 +1,10 @@
+# pycache
+**/__pycache__
+
+# datas
+**/*.json
+datas/*
+checkpoint/*
+
+# config files
+**/*.ini

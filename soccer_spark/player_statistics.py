@@ -1,23 +1,19 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
 
-spark = SparkSession.builder \
-    .appName("player_statistics") \
-    .getOrCreate()
-def spark_player_statistics(Path,save_location):
-    player_statistics = spark.read.json(Path,multiLine=True)
+def spark_player_statistics(df, spark:SparkSession):
+    player_statistics = df
     player_statistics.createOrReplaceTempView("player_statistics")
     player_stat = spark.sql("""WITH
     expanded_players AS (
         SELECT
-            explode(response.player) as expanded_player,
+            player as expanded_player,
             monotonically_increasing_id() as index_player 
         FROM
             player_statistics
     ),
     expanded_statistics AS (
         SELECT
-            explode(response.statistics) as expanded_statistics,
+            statistics as expanded_statistics,
             monotonically_increasing_id() AS index_statistics
         FROM
             player_statistics
@@ -72,4 +68,4 @@ def spark_player_statistics(Path,save_location):
             expanded_statistics.penalty.scored[0] AS penalty_scored,
             expanded_statistics.penalty.missed[0] AS penalty_missed,
             expanded_statistics.penalty.saved[0] AS penalty_saved from df_player_stat""")
-    return player_stat.write.parquet(save_location)
+    return player_stat

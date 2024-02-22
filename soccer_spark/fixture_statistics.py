@@ -1,50 +1,24 @@
+import sys, os
+sys.path.append(os.path.abspath('/home/kjh/code/football/spark'))
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
+from lib.etc import *
 
-spark = SparkSession.builder \
-    .appName("fixture_statistics") \
-    .getOrCreate()
-def spark_fixture_statistics(Path,save_location):
-    fixture_statistics = spark.read.json(Path, multiLine=True)
-    df_fixture_team = fixture_statistics.select(
-        col("parameters.fixture").alias("fixture_id"),
-        explode("response.team").alias("expanded_team"),
-        monotonically_increasing_id().alias("index_fixture")
-    )
-
-    # Create a DataFrame for statistics information
-    df_fixture_statistics = fixture_statistics.select(
-        explode("response.statistics").alias("expanded_statistics"),
-        monotonically_increasing_id().alias("index_statistics_type")
-    )
-
-    # Join the DataFrames on the generated index
-
-    df_fixture_statistics_type_exploded = df_fixture_statistics.select(
-        explode("expanded_statistics.type").alias("statistics_type"),
-        monotonically_increasing_id().alias("index_statistics_type")
-    )
-    df_fixture_statistics_value_exploded = df_fixture_statistics.select(
-        explode("expanded_statistics.value").alias("statistics_value"),
-        monotonically_increasing_id().alias("index_statistics_value")
-    )
-    column_names = [row['statistics_type'] for row in df_fixture_statistics_type_exploded.collect()]
-    values = [row['statistics_value'] for row in df_fixture_statistics_value_exploded.collect()]
-
-    df_joined = df_fixture_team.join(
-        df_fixture_statistics_type_exploded,
-        df_fixture_team["index_fixture"] == df_fixture_statistics_type_exploded["index_statistics_type"],
-        "inner"
-    )
-    column_value_mapping = dict(zip(column_names, values))
-
-    # Dynamically add columns to df_joined with values from df_fixture_statistics_value_exploded
-    for stat_type, value in column_value_mapping.items():
-        df_joined = df_joined.withColumn(stat_type, lit(value).cast("string"))
-
-    df_result = df_joined.select(
-        "fixture_id",
-        col("expanded_team.id").alias("team_id"),
-        "Shots on Goal","Shots off Goal","Total Shots","Blocked Shots","Shots insidebox","Shots outsidebox","Fouls","Corner Kicks","Offsides","Ball Possession","Yellow Cards","Red Cards","Goalkeeper Saves","Total passes","Passes accurate","Passes %"
-    )
-    return df_result.write.parquet(save_location)
+def spark_fixture_statistics(df, spark:SparkSession):
+    from pyspark.sql.functions import first
+    
+    df.createOrReplaceTempView("fixtures")
+    df_stat = spark.sql("""
+                        SELECT 
+                            response_item.fixture.id AS fixture_id,
+                            stats_item.team.id AS team_id,
+                            stat_detail.type,
+                            stat_detail.value
+                        FROM 
+                            fixtures
+                        LATERAL VIEW EXPLODE(response) AS response_item
+                        LATERAL VIEW EXPLODE(response_item.statistics) AS stats_item
+                        LATERAL VIEW EXPLODE(stats_item.statistics) AS stat_detail
+                        """)
+    df_pivoted = df_stat.groupBy("fixture_id", "team_id").pivot("type").agg(first("value"))
+    return df_pivoted
