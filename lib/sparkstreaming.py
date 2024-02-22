@@ -7,7 +7,7 @@ from lib.etc import *
 
 def readStream(topic:str, partition:int, spark:SparkSession):
     
-    kafka_bootstrap_servers = get_config_values(["kafka", "host"])[0]
+    kafka_bootstrap_servers = get_config_values([("kafka", "host")])[0]
     assign = f"""{{"{topic}":[{partition}]}}"""
     
     df = spark \

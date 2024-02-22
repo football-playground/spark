@@ -3,6 +3,8 @@
 
 # datas
 **/*.json
+datas/*
+checkpoint/*
 
 # config files
 **/*.ini
