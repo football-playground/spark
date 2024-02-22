@@ -1,14 +1,19 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
+import sys, os
+sys.path.append(os.path.abspath('/home/kjh/code/football/spark'))
 
-spark = SparkSession.builder \
-    .appName("fixture_events") \
-    .getOrCreate()
-def spark_fixture_event(Path,save_location):
-    fixture_events = spark.read.json(Path, multiLine=True)
-    df_fixture_events= fixture_events.select(
-        col("parameters.fixture").alias("fixture_id"),
-        explode("response").alias("expanded_event")
+from pyspark.sql import SparkSession
+from lib.etc import *
+
+def spark_fixture_event(df,spark:SparkSession):
+    from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
+    
+    fixture_events = df
+    df_exploded_fixtures = fixture_events.select(
+        explode("response").alias("response_item")
+    )
+    df_fixture_events= df_exploded_fixtures.select(
+        col("response_item.fixture.id").alias("fixture_id"),
+        explode("response_item.events").alias("expanded_event")
     )
     df_result = df_fixture_events.select(
         "fixture_id",
@@ -20,6 +25,5 @@ def spark_fixture_event(Path,save_location):
         col("expanded_event.type").alias("event_type"),
         col("expanded_event.detail").alias("event_detail"),
         col("expanded_event.comments").alias("event_comments")
-
     )
-    return df_result.write.parquet(save_location)
+    return df_result

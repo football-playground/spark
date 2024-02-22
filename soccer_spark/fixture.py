@@ -1,13 +1,13 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import mean,count,explode,col,monotonically_increasing_id,lit
+import sys, os
+sys.path.append(os.path.abspath('/home/kjh/code/football/spark'))
 
-spark = SparkSession.builder \
-    .appName("fixture") \
-    .getOrCreate()
-def spark_fixture(Path,save_location):
-    df_fixtures = spark.read.json(Path, multiLine=True)
+from pyspark.sql import SparkSession
+from lib.etc import *
+
+def spark_fixture(df, spark:SparkSession):
+    df_fixtures = df
     df_fixtures.createOrReplaceTempView("df_fixtures")
-    df=spark.sql("""WITH
+    df_fixture_info=spark.sql("""WITH
     expanded_fixture AS (
         SELECT
             explode(response.fixture) as expanded_fixture,
@@ -61,22 +61,24 @@ def spark_fixture(Path,save_location):
             JOIN expanded_teams ON df_league_fixture.index_fixture = expanded_teams.index_teams
     )
     Select
-    df_team_fixture.expanded_fixture.date as date,
-    df_team_fixture.expanded_fixture.id AS fixture_id,
-    df_team_fixture.expanded_fixture.periods.first AS periods_first,
-    df_team_fixture.expanded_fixture.periods.second AS periods_second,
-    df_team_fixture.expanded_fixture.timestamp AS timestamp,
-    df_team_fixture.expanded_fixture.referee AS referee,
-    df_team_fixture.expanded_fixture.venue.id AS venue_id,
-    df_team_fixture.expanded_goals.home AS home,
-    df_team_fixture.expanded_goals.away AS away,
-    df_team_fixture.expanded_league.id AS league_id,
-    df_team_fixture.expanded_league.round AS round,
-    df_team_fixture.expanded_league.season AS season,
-    df_team_fixture.expanded_teams.home.id AS home_team_id,
-    df_team_fixture.expanded_teams.away.id AS away_team_id       
-FROM
-    df_team_fixture;
-   
-""")
-    return df.write.parquet(save_location)
+        df_team_fixture.expanded_fixture.date as date,
+        df_team_fixture.expanded_fixture.id AS fixture_id,
+        df_team_fixture.expanded_fixture.periods.first AS periods_first,
+        df_team_fixture.expanded_fixture.periods.second AS periods_second,
+        df_team_fixture.expanded_fixture.timestamp AS timestamp,
+        df_team_fixture.expanded_fixture.referee AS referee,
+        df_team_fixture.expanded_fixture.venue.id AS venue_id,
+        df_team_fixture.expanded_goals.home AS home,
+        df_team_fixture.expanded_goals.away AS away,
+        df_team_fixture.expanded_league.id AS league_id,
+        df_team_fixture.expanded_league.round AS round,
+        df_team_fixture.expanded_league.season AS season,
+        df_team_fixture.expanded_teams.home.id AS home_team_id,
+        df_team_fixture.expanded_teams.away.id AS away_team_id       
+    FROM
+        df_team_fixture;
+    
+    """)
+    
+    return df_fixture_info
+
