@@ -6,7 +6,8 @@ from pyspark.sql.functions import from_json, col
 from lib.etc import *
 
 def readStream(topic:str, partition:int, spark:SparkSession):
-    kafka_bootstrap_servers = '121.171.111.22:9092'
+    
+    kafka_bootstrap_servers = get_config_values(["kafka", "host"])[0]
     assign = f"""{{"{topic}":[{partition}]}}"""
     
     df = spark \
