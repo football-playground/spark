@@ -36,7 +36,6 @@ def spark_team_statistics(df, spark:SparkSession):
     df_league_fixture =df_league_form.join(df_fixtures,df_league_form['index_league']==df_fixtures['index_fixtures'],"inner")
 
     df_goals=df_team_statistics.select(
-
         col("goals.for.total.home").alias("home_goals"),
         col("goals.for.total.away").alias("away_goals"),
         col("goals.for.total.total").alias("total_goals"),
@@ -80,7 +79,6 @@ def spark_team_statistics(df, spark:SparkSession):
     df_fixture_goals=df_league_fixture.join(df_goals,df_league_fixture['index_fixtures']==df_goals['index_goals'],'inner')
 
     df_biggest=df_team_statistics.select(
-
         col("biggest.streak.wins").alias("biggest_streak_wins"),
         col("biggest.streak.draws").alias("biggest_streak_draws"),
         col("biggest.streak.loses").alias("biggest_streak_loses"),
@@ -98,7 +96,6 @@ def spark_team_statistics(df, spark:SparkSession):
     df_fixture_biggest = df_fixture_goals.join(df_biggest,df_fixture_goals['index_fixtures']==df_biggest['index_biggest'],'inner')
 
     df_clean_sheet=df_team_statistics.select(
-
         col("clean_sheet.home").alias("home_clean_sheet"),
         col("clean_sheet.away").alias("away_clean_sheet"),
         col("clean_sheet.total").alias("total_clean_sheet"),
@@ -107,7 +104,6 @@ def spark_team_statistics(df, spark:SparkSession):
     )
     df_fixture_clean = df_fixture_biggest.join(df_clean_sheet,df_fixture_biggest['index_fixtures']==df_clean_sheet['index_clean_sheet'],'inner')
     df_failed_to_score=df_team_statistics.select(
-
         col("failed_to_score.home").alias("home_failed_to_score"),
         col("failed_to_score.away").alias("away_failed_to_score"),
         col("failed_to_score.total").alias("total_failed_to_score"),
@@ -117,7 +113,6 @@ def spark_team_statistics(df, spark:SparkSession):
     df_fixture_fail_score = df_fixture_clean.join(df_failed_to_score,df_fixture_clean['index_fixtures']==df_failed_to_score['index_failed_to_score'],'inner')
 
     df_penalty=df_team_statistics.select(
-
         col("penalty.scored.total").alias("total_penalty_scored"),
         col("penalty.scored.percentage").alias("total_penalty_scored_percentage"),
         col("penalty.missed.total").alias("total_penalty_missed"),
@@ -128,7 +123,6 @@ def spark_team_statistics(df, spark:SparkSession):
     df_fixture_penalty = df_fixture_fail_score.join(df_penalty,df_fixture_fail_score['index_fixtures']==df_penalty['index_penalty'],'inner')
 
     # df_lineups=df_team_statistics.select(
-
     #     explode("lineups").alias("expanded_lineups"),
     #     monotonically_increasing_id().alias("index_lineups")
     #  )
@@ -136,7 +130,6 @@ def spark_team_statistics(df, spark:SparkSession):
 
 
     df_cards=df_team_statistics.select(
-
         col("cards.yellow.0-15.total").alias("0-15_yellow"),
         col("cards.yellow.0-15.percentage").alias("0-15_yellow_percentage"),
         col("cards.yellow.16-30.total").alias("16-30_yellow"),
@@ -169,7 +162,6 @@ def spark_team_statistics(df, spark:SparkSession):
         col("cards.red.91-105.percentage").alias("91-105_red_percentage"),
         col("cards.red.106-120.total").alias("106-120_red"),
         col("cards.red.106-120.percentage").alias("106-120_red_percentage"),
-
         monotonically_increasing_id().alias("index_cards")
         
     )
@@ -180,5 +172,4 @@ def spark_team_statistics(df, spark:SparkSession):
     "index_league", "league_id","season","team_id","team_form","home_game","away_game","total_game","home_wins","away_wins","total_wins","home_draws","away_draws","total_draws","home_loses","away_loses","total_loses","home_goals","away_goals","total_goals","home_avg_goals","away_avg_goals","total_avg_goals","0-15_total_goals","0-15_goals_percentage","16-30_total_goals","16-30_goals_percentage","31-45_total_goals","31-45_goals_percentage","46-60_total_goals","46-60_goals_percentage","61-75_total_goals","61-75_goals_percentage","76-90_total_goals","76-90_goals_percentage","91-105_total_goals","91-105_goals_percentage","106-120_total_goals","106-120_goals_percentage","0-15_against_percentage","16-30_total_against_goals","16-30_against_percentage","31-45_total_against_goals","31-45_against_percentage","46-60_total_against_goals","46-60_against_percentage","61-75_total_against_goals","61-75_against_percentage","76-90_total_against_goals","76-90_against_percentage","91-105_total_against_goals","91-105_against_percentage","106-120_total_against_goals","106-120_against_percentage","biggest_streak_wins","biggest_streak_draws","biggest_streak_loses","biggest_home_wins","biggest_away_wins","biggest_home_loses","biggest_away_loses","biggest_home_goals","biggest_away_goals","biggest_home_against","biggest_away_against","home_clean_sheet","away_clean_sheet","total_clean_sheet","home_failed_to_score","away_failed_to_score","total_failed_to_score","total_penalty_scored","total_penalty_scored_percentage","total_penalty_missed","total_penalty_missed_percentage","total_penalty","0-15_yellow","0-15_yellow_percentage","16-30_yellow","16-30_yellow_percentage","31-45_yellow","31-45_yellow_percentage","46-60_yellow","46-60_yellow_percentage","61-75_yellow","61-75_yellow_percentage","76-90_yellow","76-90_yellow_percentage","91-105_yellow","91-105_yellow_percentage","106-120_yellows","106-120_yellow_percentage","0-15_red","0-15_red_percentage","16-30_red","16-30_red_percentage","31-45_red","31-45_red_percentage","46-60_red","46-60_red_percentage","61-75_red","61-75_red_percentage","76-90_red","76-90_red_percentage","91-105_red","91-105_red_percentage","106-120_red","106-120_red_percentage"
 
     )
-
     return df_result
